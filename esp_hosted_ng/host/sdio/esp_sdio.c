@@ -782,6 +782,22 @@ static int esp_probe(struct sdio_func *func,
 		host->ops->set_ios(host, &host->ios);
 	}
 
+	/*
+	 * The on-board ESP has no EN/reset line wired to the SAMA7, so it keeps
+	 * running across a host-only reboot (e.g. an A/B firmware-update swap).
+	 * Its SDIO slave TX/RX counters and queued buffers then carry over from
+	 * the previous host session, while get_firmware_data() below latches
+	 * them into a fresh context -> the tx_buffer/rx_byte accounting desyncs.
+	 * Pulse the slave's ESP_RESET event so it stop/reset/starts its SDIO
+	 * transport (see event_cb() in the slave's sdio_slave_api.c), restarting
+	 * its counters from zero aligned with this host session. Harmless on a
+	 * cold boot where the slave just started.
+	 */
+	ret = generate_slave_intr(context, BIT(ESP_RESET));
+	if (ret)
+		esp_warn("Failed to reset ESP SDIO transport on probe (%d)\n", ret);
+	msleep(100);
+
 	ret = init_context(context);
 	if (ret) {
 		deinit_sdio_func(func);

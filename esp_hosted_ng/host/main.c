@@ -37,7 +37,7 @@ static u32 clockspeed = 0;
 extern u8 ap_bssid[MAC_ADDR_LEN];
 extern volatile u8 host_sleep;
 u32 raw_tp_mode = 0;
-int log_level = ESP_INFO;
+int log_level = ESP_WARNING;
 #define VERSION_BUFFER_SIZE 50
 char version_str[VERSION_BUFFER_SIZE];
 
@@ -53,6 +53,9 @@ MODULE_PARM_DESC(raw_tp_mode, "Mode chosen to test raw throughput");
 
 module_param(ota_file, charp, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 MODULE_PARM_DESC(ota_file, "Ota file to update ESP firmware");
+
+module_param(log_level, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+MODULE_PARM_DESC(log_level, "Log verbosity: 0=err 1=warn 2=info 3=dbg 4=verbose (default 1)");
 
 static void deinit_adapter(void);
 
